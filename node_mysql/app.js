@@ -2,15 +2,11 @@
 
 const path = require('path');
 const express = require('express');
-const router = require('express').Router();
 const bodyParser = require('body-parser');
 const app = express();
 const mysql = require('mysql');
-const layouts = require('express-ejs-layouts');
 
-app.use(layouts);
 app.set('view engine', 'ejs');
-
 app.set('port', process.env.PORT || 3000);
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -27,19 +23,22 @@ con.connect(function (err) {
   console.log('接続できました');
 });
 
-app.router('/', (req, res) =>
+// 登録フォーム表示経路(index.htmlのフォームを表示)
+app.get('/create', (req, res) =>
   res.sendFile(path.join(__dirname, './index.html')));
+
+// 登録処理経路(index.htmlから受けたPOSTリクエストを処理)
 app.post('/', (req, res) => {
   const sql = 'INSERT INTO users SET ?';
   con.query(sql, req.body, function (err, result, fields) {
     if (err) throw err;
     console.log(result);
-    res.send('登録が完了しました');
+    res.redirect('/');
   });
 });
 
-/*****/
-app.router('/', (req, res) => {
+// ユーザーリスト表示経路(index.ejsに値を渡す)
+app.get('/', (req, res) => {
   const sql = 'select * from users';
   con.query(sql, function (err, result, fields) {
     if (err) throw err;
@@ -47,12 +46,42 @@ app.router('/', (req, res) => {
   });
 });
 
-app.use('/', router);
+// 削除処理経路(index.ejsからの経路)
+app.get('/delete/:id', (req, res) => {
+  const sql = 'DELETE FROM users WHERE id = ?';
+  con.query(sql, [req.params.id], function (err, result, fields) {
+    if (err) throw err;
+    console.log(result);
+    res.redirect('/');
+  });
+});
+
+// 更新フォーム経路(index.ejsからの経路 -> edit.jsに値を渡す)
+app.get('/edit/:id', (req, res) => {
+  const sql = 'SELECT * FROM users WHERE id = ?';
+  con.query(sql, [req.params.id], function (err, result, fields) {
+    if (err) throw err;
+    res.render('edit', { user: result });
+  });
+});
+
+// 更新処理経路(edit.ejsからの経路)
+app.post('/update/:id', (req, res) => {
+  const sql = 'UPDATE users SET ? WHERE id = ' + req.params.id;
+  con.query(sql, req.body, function (err, result, fields) {
+    if (err) throw err;
+    console.log(result);
+    res.redirect('/');
+  });
+});
+
 app.listen(app.get('port'), () => {
   console.log(`port${app.get('port')}を監視しています`);
 });
 
-/* // mysqlに接続
+/*
+
+// mysqlに接続
 const con = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -119,19 +148,6 @@ app.get('/', (request, response) => {
   con.query(sql, function (err, result, fields) {
     if (err) throw err;
     response.send(result);
-  });
-});
-
-// POSTからメールの情報をDBに保存
-app.get('/', (req, res) =>
-  res.sendFile(path.join(__dirname, './index.html')));
-app.post('/', (req, res) => {
-  const sql = 'INSERT INTO users SET ?'
-
-  con.query(sql, req.body, function (err, result, fields) {
-    if (err) throw err;
-    console.log(result);
-    res.send('登録が完了しました');
   });
 });
 
