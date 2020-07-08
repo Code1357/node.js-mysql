@@ -10,6 +10,41 @@ app.set('view engine', 'ejs');
 app.set('port', process.env.PORT || 3000);
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Ajax練習
+
+// 写真のサンプルデータ, Jsonデータ
+var photoList = [
+  {
+    id: "001",
+    name: "photo001.jpg",
+    type: "jpg",
+    dataUrl: "http://localhost:3000/data/photo001.jpg"
+  }, {
+    id: "002",
+    name: "photo002.jpg",
+    type: "jpg",
+    dataUrl: "http://localhost:3000/data/photo002.jpg"
+  }
+];
+
+// 写真リストを取得するAPI, /api/photo/list のHTTPリクエストを叩いたら
+app.get('/api/photo/list', (req, res, next) => {
+  res.json(photoList); // jsonタイプのphotoListを表示させる
+});
+
+/* // 動的なAPIを作成, /api/photo/:photoId のHTTPリクエストを叩いたら
+app.get('/api/photo/:photoId', (req, res, next) => { // req.params.photoIdとして参照
+  var photo;
+  for (i = 0; i < photoList.length; i++) {
+    if (photoList[i].id == req.params.photoId) {
+      var photo = photoList[i];
+    }
+  }
+  res.json(photo);
+}); */
+
+// -----------------------------------------------------
+
 // mysql > database: 'db_test',db_testに接続
 const con = mysql.createConnection({
   host: 'localhost',
@@ -21,17 +56,11 @@ const con = mysql.createConnection({
 con.connect((err) => {
   if (err) throw err;
   console.log('接続できました');
-  // テーブルの内容を参照
-  const sql = 'select email from users where employee = 111';
-  con.query(sql, function (err, result, fields) {
-    if (err) throw err;
-    console.log(result);
-  });
 });
 
 // 登録フォーム表示経路(index.htmlのフォームを表示)
-app.get('/create', (req, res) =>
-  res.sendFile(path.join(__dirname, './index.html')));
+/* app.get('/create', (req, res) =>
+  res.sendFile(path.join(__dirname, './index.html'))); */
 
 // 登録処理経路(index.htmlから受けたPOSTリクエストを処理)
 app.post('/', (req, res) => {
@@ -156,4 +185,11 @@ app.get('/', (request, response) => {
     response.send(result);
   });
 });
+
+  // テーブルの内容を参照
+  const sql = 'select email from users where employee = 111';
+  con.query(sql, function (err, result, fields) {
+    if (err) throw err;
+    console.log(result);
+  });
 */
